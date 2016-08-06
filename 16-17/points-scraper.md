@@ -9,6 +9,7 @@ library(rvest)
 library(magrittr)
 library(tibble)
 library(ggplot2)
+library(ggthemes)
 library(plotly)
 ```
 
@@ -48,17 +49,23 @@ final.rows <- c(0, sapply(flanking.players, function(x) which(points.dfr$Name ==
 points.dfr$Position <- rep(c("GK", "DEF", "MID", "ATK"), diff(final.rows))
 ```
 
-### Calculate points-per-cost and plot
+### Calculate points-per-cost and plot in increasing p-p-c order
 
 ``` r
 points.dfr$per <- points.dfr$Points / points.dfr$Cost
 points.dfr$per_ord <- factor(points.dfr$Name, levels = points.dfr$Name[order(points.dfr$per)])
 
 points.dfr <- points.dfr[order(points.dfr$per, decreasing = TRUE),]
-
-ggplot(points.dfr[1:100,], aes(y = per_ord, x = per, colour = Team, size = Points, alpha = Cost)) + 
-  geom_point() + 
-  facet_wrap(~Position)
 ```
 
-![](points-scraper_files/figure-markdown_github/unnamed-chunk-5-1.png)
+``` r
+ggplot(points.dfr[1:100,], aes(y = per_ord, x = per, colour = Team, size = Points, alpha = Cost)) + 
+  geom_point() + 
+  facet_wrap(~Position) + 
+  theme_pander() + 
+  theme(panel.margin=unit(0.1, "lines"),
+        panel.border = element_rect(color = "light grey", fill = NA, size = 0.1)) +
+  xlab("Points-per-cost")
+```
+
+![](points-scraper_files/figure-markdown_github/unnamed-chunk-6-1.png)
