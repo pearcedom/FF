@@ -49,7 +49,9 @@ final.rows <- c(0, sapply(flanking.players, function(x) which(points.dfr$Name ==
 points.dfr$Position <- rep(c("GK", "DEF", "MID", "ATK"), diff(final.rows))
 ```
 
-### Calculate points-per-cost and plot in increasing p-p-c order
+### Calculate points-per-cost
+
+#### Plot the top 100 in increasing p-p-c order
 
 ``` r
 points.dfr$per <- points.dfr$Points / points.dfr$Cost
@@ -61,10 +63,9 @@ points.dfr <- points.dfr[order(points.dfr$per, decreasing = TRUE),]
 ``` r
 ggplot(points.dfr[1:100,], aes(y = per_ord, x = per, colour = Team, size = Points, alpha = Cost)) + 
   geom_point() + 
-  facet_wrap(~Position) + 
+  facet_wrap(~Position, scales = 'free_y') + 
   theme_pander() + 
-  theme(panel.margin=unit(0.1, "lines"),
-        panel.border = element_rect(color = "light grey", fill = NA, size = 0.1)) +
+  theme(legend.position = 'bottom') +
   xlab("Points-per-cost")
 ```
 
