@@ -56,7 +56,7 @@ points.dfr$Position <- rep(c("GK", "DEF", "MID", "ATK"), diff(final.rows))
 
 ##Calculate points-per-cost and plot
 
-```{r, fig.height=12, fig.width = 9}
+```{r, fig.height=14, fig.width = 10}
 points.dfr$per <- points.dfr$Points / points.dfr$Cost
 points.dfr$per_ord <- factor(points.dfr$Name, levels = points.dfr$Name[order(points.dfr$per)])
 
