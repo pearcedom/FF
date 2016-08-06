@@ -59,8 +59,7 @@ points.dfr$per_ord <- factor(points.dfr$Name, levels = points.dfr$Name[order(poi
 
 points.dfr <- points.dfr[order(points.dfr$per, decreasing = TRUE),]
 
-
-ggplot(points.dfr[1:100,], aes(y = per_ord, x = per, colour = Team)) + geom_point() + facet_wrap(~Position)
+ggplot(points.dfr[1:100,], aes(y = per_ord, x = per, colour = Team, size = Points, alpha = Cost)) + geom_point() + facet_wrap(~Position)
 ```
 
 ![](points-scraper_files/figure-html/unnamed-chunk-5-1.png)<!-- -->

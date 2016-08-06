@@ -56,13 +56,12 @@ points.dfr$Position <- rep(c("GK", "DEF", "MID", "ATK"), diff(final.rows))
 
 ##Calculate points-per-cost and plot
 
-```{r, fig.height=14, fig.width = 10}
+```{r, fig.height=19, fig.width = 11}
 points.dfr$per <- points.dfr$Points / points.dfr$Cost
 points.dfr$per_ord <- factor(points.dfr$Name, levels = points.dfr$Name[order(points.dfr$per)])
 
 points.dfr <- points.dfr[order(points.dfr$per, decreasing = TRUE),]
 
-
-ggplot(points.dfr[1:100,], aes(y = per_ord, x = per, colour = Team)) + geom_point() + facet_wrap(~Position)
+ggplot(points.dfr[1:100,], aes(y = per_ord, x = per, colour = Team, size = Points, alpha = Cost)) + geom_point() + facet_wrap(~Position)
 ```
 
