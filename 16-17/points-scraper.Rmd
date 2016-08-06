@@ -1,0 +1,48 @@
+---
+title: Scrape them points
+author: Dominic Pearce
+output: html_document
+---
+
+```{r}
+library(rvest)
+library(magrittr)
+library(tibble)
+library(ggplot2)
+```
+
+```{r}
+points.html <- read_html("https://fantasy.premierleague.com/player-list/") %>%
+  html_nodes("td") %>%
+  html_text()
+
+
+points.dfr <- lapply(1:4, function(x) {
+  points.html[seq(x, length(points.html), 4)]
+  }
+  ) %>% data.frame %>% as_tibble()
+
+colnames(points.dfr) <- c("Name", "Team", "Points", "Cost")
+points.dfr$Points <- as.numeric(as.character(points.dfr$Points))
+points.dfr$Cost <- gsub("£", "", points.dfr$Cost)
+points.dfr$Cost <- as.numeric(points.dfr$Cost)
+```
+
+```{r}
+flanking.players <- c("Nordfeldt", "Gamboa", "Cullen", "Vydra")
+
+final.rows <- c(0, sapply(flanking.players, function(x) which(points.dfr$Name == x)))
+
+points.dfr$Position <- rep(c("GK", "DEF", "MID", "ATK"), diff(final.rows))
+```
+
+```{r}
+points.dfr$per <- points.dfr$Points / points.dfr$Cost
+points.dfr$per_ord <- factor(points.dfr$Name, levels = points.dfr$Name[order(points.dfr$per)])
+
+points.dfr <- points.dfr[order(points.dfr$per, decreasing = TRUE),]
+
+
+ggplot(points.dfr[1:100,], aes(y = per_ord, x = per, colour = Team)) + geom_point()
+```
+
