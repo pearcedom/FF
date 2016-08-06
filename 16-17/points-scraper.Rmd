@@ -6,7 +6,7 @@ output:
     keep_md: true
 ---
 
-```{r, echo=FALSE}
+```{r, include = FALSE}
 knitr::opts_chunk$set(warning = FALSE, message = FALSE)
 ```
 
@@ -63,6 +63,6 @@ points.dfr$per_ord <- factor(points.dfr$Name, levels = points.dfr$Name[order(poi
 points.dfr <- points.dfr[order(points.dfr$per, decreasing = TRUE),]
 
 
-ggplotly(ggplot(points.dfr[1:100,], aes(y = per_ord, x = per, colour = Team)) + geom_point() + facet_wrap(~Position))
+ggplot(points.dfr[1:100,], aes(y = per_ord, x = per, colour = Team)) + geom_point() + facet_wrap(~Position)
 ```
 
