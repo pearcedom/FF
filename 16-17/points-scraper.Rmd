@@ -2,8 +2,7 @@
 title: Scrape them points
 author: Dominic Pearce
 output: 
-  html_document:
-    keep_md: true
+  github_document
 ---
 
 ```{r, include = FALSE}
@@ -11,7 +10,7 @@ knitr::opts_chunk$set(warning = FALSE, message = FALSE)
 ```
 
 
-##Libraries
+###Libraries
 
 ```{r}
 library(rvest)
@@ -20,7 +19,7 @@ library(tibble)
 library(ggplot2)
 library(plotly)
 ```
-##Get player data
+###Get player data
 ####The webpage contains a bunch of tables with player, team, points (last seasons total) and cost but needs to be rearranged
 
 ```{r}
@@ -43,7 +42,7 @@ points.dfr$Cost <- gsub("£", "", points.dfr$Cost)
 points.dfr$Cost <- as.numeric(points.dfr$Cost)
 ```
 
-##Assign position
+###Assign position
 ####All players scraped as one big lump of text and position information was lost. *BUT*, using the last player in each section from the website we can quickly assign the correct positions
 
 ```{r}
@@ -54,7 +53,7 @@ final.rows <- c(0, sapply(flanking.players, function(x) which(points.dfr$Name ==
 points.dfr$Position <- rep(c("GK", "DEF", "MID", "ATK"), diff(final.rows))
 ```
 
-##Calculate points-per-cost and plot
+###Calculate points-per-cost and plot
 
 ```{r, fig.height=19, fig.width = 11}
 points.dfr$per <- points.dfr$Points / points.dfr$Cost
@@ -62,6 +61,8 @@ points.dfr$per_ord <- factor(points.dfr$Name, levels = points.dfr$Name[order(poi
 
 points.dfr <- points.dfr[order(points.dfr$per, decreasing = TRUE),]
 
-ggplot(points.dfr[1:100,], aes(y = per_ord, x = per, colour = Team, size = Points, alpha = Cost)) + geom_point() + facet_wrap(~Position)
+ggplot(points.dfr[1:100,], aes(y = per_ord, x = per, colour = Team, size = Points, alpha = Cost)) + 
+  geom_point() + 
+  facet_wrap(~Position)
 ```
 
