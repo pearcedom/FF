@@ -71,3 +71,16 @@ ggplot(points.dfr[1:100,], aes(y = per_ord, x = per, colour = Team, size = Point
   theme(legend.position = 'bottom') +
   xlab("Points-per-cost")
 ```
+
+
+```{r}
+ff.list <- fromJSON("https://fantasy.premierleague.com/drf/bootstrap-static")
+ff.dfr_base <- as_tibble(ff.list$elements)
+
+ff.dfr <- ff.dfr_base[c("id", "team_code", "status", "first_name", "second_name", "now_cost", "value_form", "value_season", "selected_by_percent", "form", "total_points", "points_per_game", "minutes", "goals_scored", "assists", "clean_sheets", "goals_conceded", "own_goals", "penalties_saved", "penalties_missed", "yellow_cards", "red_cards", "saves", "bonus", "bps", "influence", "creativity", "threat", "element_type", "team")]
+
+lapply(unique(ff.dfr$element_type), function(x) ggplot(ff.dfr[ff.dfr$element_type == x,], aes(x = second_name, y = as.numeric(selected_by_percent), colour = as.character(team_code))) + geom_point() + theme(legend.position = 'none', axis.text.x = element_text(angle = 90)))
+
+
+```
+
