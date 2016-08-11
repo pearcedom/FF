@@ -37,6 +37,8 @@ ff.dfr <- ff.dfr_teams[c("id", "team.y", "status", "first_name", "second_name", 
 Plot as percentage selected by position
 ---------------------------------------
 
+#### Of players selected by at least 1% of the population
+
 ``` r
 ggplot(ff.dfr[ff.dfr$selected_by_percent > 1,], aes(x = second_name, y = as.numeric(selected_by_percent), fill = team.y, colour = team.y)) +
   geom_bar(stat = 'identity', width = 0.03) + 
