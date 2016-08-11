@@ -7,7 +7,6 @@ output: github_document
 ```{r}
 knitr::opts_chunk$set(echo = TRUE, message = FALSE, warning = FALSE)
 ```
-
 ```{r}
 library(lpSolve)
 library(stringr)
@@ -17,17 +16,21 @@ library(plyr)
 library(readr)
 ```
 
+## Using linear programming we set a number of constraints and a variable to optimise our selection on and the computer choses the best possible team based off of last seasons points tallies
+#### credit to ___ for the script on how to do this!
+
+### Data load
 ```{r}
-dfr <- read_tsv("/Users/dom/Documents/FF/16-17/scrapes/16-08-11-scrape.txt")
-dfr[c("web_name", "now_cost")]
 df <- read_tsv("/Users/dom/Documents/FF/16-17/scrapes/16-08-11-scrape.txt")
 ```
 
+### The vector to optimize on
 ```{r}
-# The vector to optimize on
 objective <- df$total_points
+```
 
-# Fitting Constraints
+### Fitting Constraints
+```{r}
 num_gk <- 2
 num_def <- 5
 num_mid <- 5
@@ -35,15 +38,16 @@ num_fwd <- 3
 max_cost <- 1000
 ```
 
-
+### Create vectors to constrain by position
 ```{r}
-# Create vectors to constrain by position
 df$Goalkeeper <- ifelse(df$element_type == "GK", 1, 0)
 df$Defender <- ifelse(df$element_type == "DEF", 1, 0)
 df$Midfielder <- ifelse(df$element_type == "MID", 1, 0)
 df$Forward <- ifelse(df$element_type == "FWD", 1, 0)
+```
 
-# Create constraint vectors to constrain by max number of players allowed per team
+### Create constraint vectors to constrain by max number of players allowed per team
+```{r}
 team_constraint <- unlist(lapply(unique(df$team.y), function(x, df){
   ifelse(df$team.y==x, 1, 0)
 }, df=df))
@@ -52,23 +56,19 @@ team_constraint <- unlist(lapply(unique(df$team.y), function(x, df){
 const_dir <- c("=", "=", "=", "=", rep("<=", 21))
 ```
 
+### Now put the complete matrix together and solve
 ```{r}
-# Now put the complete matrix together
 const_mat <- matrix(c(df$Goalkeeper, df$Defender, df$Midfielder, df$Forward,
                       df$now_cost, team_constraint),
                     nrow=(5 + length(unique(df$team.y))), byrow=TRUE)
 const_rhs <- c(num_gk, num_def, num_mid, num_fwd, max_cost, rep(3, 20))
-```
 
-```{r}
-# then solve the matrix
 x <- lp ("max", objective, const_mat, const_dir, const_rhs, all.bin=TRUE, all.int=TRUE)
 ```
 
+### The team!
 ```{r}
-# And this is our team!
-print(arrange(df[which(x$solution==1),], desc(Goalkeeper), desc(Defender),
-              desc(Midfielder), desc(Forward), desc(total_points)))
-print(str_c('Total Price: ', sum(df[which(x$solution==1), 'now_cost'])))
-print(str_c('Total Points: ', sum(df[which(x$solution==1), 'total_points'])))
+df_out <- df[which(x$solution==1), c("first_name", "second_name", "now_cost", "team.y", "element_type")]
+
+knitr::kable(df_out[order(df_out$element_type),])
 ```

@@ -34,95 +34,159 @@ body {
 <span class="kw">library</span>(jsonlite)
 <span class="kw">library</span>(plyr)
 <span class="kw">library</span>(readr)</code></pre></div>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">dfr &lt;-<span class="st"> </span><span class="kw">read_tsv</span>(<span class="st">&quot;/Users/dom/Documents/FF/16-17/scrapes/16-08-11-scrape.txt&quot;</span>)
-dfr[<span class="kw">c</span>(<span class="st">&quot;web_name&quot;</span>, <span class="st">&quot;now_cost&quot;</span>)]</code></pre></div>
-<pre><code>## # A tibble: 505 x 2
-##          web_name now_cost
-##             &lt;chr&gt;    &lt;int&gt;
-## 1    Schneiderlin       50
-## 2            Rojo       55
-## 3         Pereira       45
-## 4         Carrick       45
-## 5  Schweinsteiger       55
-## 6         Januzaj       55
-## 7         Martial       95
-## 8           Pogba       85
-## 9         Herrera       65
-## 10       Valencia       55
-## # ... with 495 more rows</code></pre>
+<h2 id="using-linear-programming-we-set-a-number-of-constraints-and-a-variable-to-optimise-our-selection-on-and-the-computer-choses-the-best-possible-team-based-off-of-last-seasons-points-tallies">Using linear programming we set a number of constraints and a variable to optimise our selection on and the computer choses the best possible team based off of last seasons points tallies</h2>
+<h4 id="credit-to-___-for-the-script-on-how-to-do-this">credit to ___ for the script on how to do this!</h4>
+<h3 id="data-load">Data load</h3>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">df &lt;-<span class="st"> </span><span class="kw">read_tsv</span>(<span class="st">&quot;/Users/dom/Documents/FF/16-17/scrapes/16-08-11-scrape.txt&quot;</span>)</code></pre></div>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="co"># The vector to optimize on</span>
-objective &lt;-<span class="st"> </span>df$total_points
-
-<span class="co"># Fitting Constraints</span>
-num_gk &lt;-<span class="st"> </span><span class="dv">2</span>
+<h3 id="the-vector-to-optimize-on">The vector to optimize on</h3>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">objective &lt;-<span class="st"> </span>df$total_points</code></pre></div>
+<h3 id="fitting-constraints">Fitting Constraints</h3>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">num_gk &lt;-<span class="st"> </span><span class="dv">2</span>
 num_def &lt;-<span class="st"> </span><span class="dv">5</span>
 num_mid &lt;-<span class="st"> </span><span class="dv">5</span>
 num_fwd &lt;-<span class="st"> </span><span class="dv">3</span>
 max_cost &lt;-<span class="st"> </span><span class="dv">1000</span></code></pre></div>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="co"># Create vectors to constrain by position</span>
-df$Goalkeeper &lt;-<span class="st"> </span><span class="kw">ifelse</span>(df$element_type ==<span class="st"> &quot;GK&quot;</span>, <span class="dv">1</span>, <span class="dv">0</span>)
+<h3 id="create-vectors-to-constrain-by-position">Create vectors to constrain by position</h3>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">df$Goalkeeper &lt;-<span class="st"> </span><span class="kw">ifelse</span>(df$element_type ==<span class="st"> &quot;GK&quot;</span>, <span class="dv">1</span>, <span class="dv">0</span>)
 df$Defender &lt;-<span class="st"> </span><span class="kw">ifelse</span>(df$element_type ==<span class="st"> &quot;DEF&quot;</span>, <span class="dv">1</span>, <span class="dv">0</span>)
 df$Midfielder &lt;-<span class="st"> </span><span class="kw">ifelse</span>(df$element_type ==<span class="st"> &quot;MID&quot;</span>, <span class="dv">1</span>, <span class="dv">0</span>)
-df$Forward &lt;-<span class="st"> </span><span class="kw">ifelse</span>(df$element_type ==<span class="st"> &quot;FWD&quot;</span>, <span class="dv">1</span>, <span class="dv">0</span>)
-
-<span class="co"># Create constraint vectors to constrain by max number of players allowed per team</span>
-team_constraint &lt;-<span class="st"> </span><span class="kw">unlist</span>(<span class="kw">lapply</span>(<span class="kw">unique</span>(df$team.y), function(x, df){
+df$Forward &lt;-<span class="st"> </span><span class="kw">ifelse</span>(df$element_type ==<span class="st"> &quot;FWD&quot;</span>, <span class="dv">1</span>, <span class="dv">0</span>)</code></pre></div>
+<h3 id="create-constraint-vectors-to-constrain-by-max-number-of-players-allowed-per-team">Create constraint vectors to constrain by max number of players allowed per team</h3>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">team_constraint &lt;-<span class="st"> </span><span class="kw">unlist</span>(<span class="kw">lapply</span>(<span class="kw">unique</span>(df$team.y), function(x, df){
   <span class="kw">ifelse</span>(df$team.y==x, <span class="dv">1</span>, <span class="dv">0</span>)
 }, <span class="dt">df=</span>df))
 
 <span class="co"># next we need the constraint directions</span>
 const_dir &lt;-<span class="st"> </span><span class="kw">c</span>(<span class="st">&quot;=&quot;</span>, <span class="st">&quot;=&quot;</span>, <span class="st">&quot;=&quot;</span>, <span class="st">&quot;=&quot;</span>, <span class="kw">rep</span>(<span class="st">&quot;&lt;=&quot;</span>, <span class="dv">21</span>))</code></pre></div>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="co"># Now put the complete matrix together</span>
-const_mat &lt;-<span class="st"> </span><span class="kw">matrix</span>(<span class="kw">c</span>(df$Goalkeeper, df$Defender, df$Midfielder, df$Forward,
+<h3 id="now-put-the-complete-matrix-together-and-solve">Now put the complete matrix together and solve</h3>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">const_mat &lt;-<span class="st"> </span><span class="kw">matrix</span>(<span class="kw">c</span>(df$Goalkeeper, df$Defender, df$Midfielder, df$Forward,
                       df$now_cost, team_constraint),
                     <span class="dt">nrow=</span>(<span class="dv">5</span> +<span class="st"> </span><span class="kw">length</span>(<span class="kw">unique</span>(df$team.y))), <span class="dt">byrow=</span><span class="ot">TRUE</span>)
-const_rhs &lt;-<span class="st"> </span><span class="kw">c</span>(num_gk, num_def, num_mid, num_fwd, max_cost, <span class="kw">rep</span>(<span class="dv">3</span>, <span class="dv">20</span>))</code></pre></div>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="co"># then solve the matrix</span>
+const_rhs &lt;-<span class="st"> </span><span class="kw">c</span>(num_gk, num_def, num_mid, num_fwd, max_cost, <span class="kw">rep</span>(<span class="dv">3</span>, <span class="dv">20</span>))
+
 x &lt;-<span class="st"> </span><span class="kw">lp</span> (<span class="st">&quot;max&quot;</span>, objective, const_mat, const_dir, const_rhs, <span class="dt">all.bin=</span><span class="ot">TRUE</span>, <span class="dt">all.int=</span><span class="ot">TRUE</span>)</code></pre></div>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="co"># And this is our team!</span>
-<span class="kw">print</span>(<span class="kw">arrange</span>(df[<span class="kw">which</span>(x$solution==<span class="dv">1</span>),], <span class="kw">desc</span>(Goalkeeper), <span class="kw">desc</span>(Defender),
-              <span class="kw">desc</span>(Midfielder), <span class="kw">desc</span>(Forward), <span class="kw">desc</span>(total_points)))</code></pre></div>
-<pre><code>## # A tibble: 15 x 62
-##    team_code    id      photo     web_name status   code first_name
-##        &lt;int&gt; &lt;int&gt;      &lt;chr&gt;        &lt;chr&gt;  &lt;chr&gt;  &lt;int&gt;      &lt;chr&gt;
-## 1          3     2  11334.jpg         Cech      a  11334       Petr
-## 2         57   407  18656.jpg        Gomes      a  18656   Heurelho
-## 3          3     6  98745.jpg     Bellerín      a  98745     Héctor
-## 4          6   382  55605.jpg Alderweireld      a  55605       Toby
-## 5         13   173  12413.jpg         Huth      s  12413     Robert
-## 6         13   167  15033.jpg       Morgan      a  15033        Wes
-## 7         91    33  41320.jpg      Daniels      a  41320    Charlie
-## 8         13   176 103025.jpg       Mahrez      a 103025      Riyad
-## 9         21   374  45124.jpg         Ayew      a  45124      André
-## 10        14   485  41733.jpg    Wijnaldum      a  41733  Georginio
-## 11       110   331  41464.jpg   Arnautovic      d  41464      Marko
-## 12         6   390  93264.jpg         Dier      a  93264       Eric
-## 13        11   143  66749.jpg       Lukaku      d  66749     Romelu
-## 14        57   426  58498.jpg       Ighalo      a  58498      Odion
-## 15        57   425  41725.jpg       Deeney      a  41725       Troy
-## # ... with 55 more variables: second_name &lt;chr&gt;, squad_number &lt;int&gt;,
-## #   news &lt;chr&gt;, now_cost &lt;int&gt;, chance_of_playing_this_round &lt;chr&gt;,
-## #   chance_of_playing_next_round &lt;int&gt;, value_form &lt;dbl&gt;,
-## #   value_season &lt;dbl&gt;, cost_change_start &lt;int&gt;, cost_change_event &lt;int&gt;,
-## #   cost_change_start_fall &lt;int&gt;, cost_change_event_fall &lt;int&gt;,
-## #   in_dreamteam &lt;lgl&gt;, dreamteam_count &lt;int&gt;, selected_by_percent &lt;dbl&gt;,
-## #   form &lt;dbl&gt;, transfers_out &lt;int&gt;, transfers_in &lt;int&gt;,
-## #   transfers_out_event &lt;int&gt;, transfers_in_event &lt;int&gt;, loans_in &lt;int&gt;,
-## #   loans_out &lt;int&gt;, loaned_in &lt;int&gt;, loaned_out &lt;int&gt;,
-## #   total_points &lt;int&gt;, event_points &lt;int&gt;, points_per_game &lt;dbl&gt;,
-## #   ep_this &lt;chr&gt;, ep_next &lt;dbl&gt;, special &lt;lgl&gt;, minutes &lt;int&gt;,
-## #   goals_scored &lt;int&gt;, assists &lt;int&gt;, clean_sheets &lt;int&gt;,
-## #   goals_conceded &lt;int&gt;, own_goals &lt;int&gt;, penalties_saved &lt;int&gt;,
-## #   penalties_missed &lt;int&gt;, yellow_cards &lt;int&gt;, red_cards &lt;int&gt;,
-## #   saves &lt;int&gt;, bonus &lt;int&gt;, bps &lt;int&gt;, influence &lt;dbl&gt;,
-## #   creativity &lt;dbl&gt;, threat &lt;dbl&gt;, ict_index &lt;dbl&gt;, ea_index &lt;int&gt;,
-## #   element_type &lt;chr&gt;, team.x &lt;int&gt;, team.y &lt;chr&gt;, Goalkeeper &lt;dbl&gt;,
-## #   Defender &lt;dbl&gt;, Midfielder &lt;dbl&gt;, Forward &lt;dbl&gt;</code></pre>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">print</span>(<span class="kw">str_c</span>(<span class="st">'Total Price: '</span>, <span class="kw">sum</span>(df[<span class="kw">which</span>(x$solution==<span class="dv">1</span>), <span class="st">'now_cost'</span>])))</code></pre></div>
-<pre><code>## [1] &quot;Total Price: 1000&quot;</code></pre>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">print</span>(<span class="kw">str_c</span>(<span class="st">'Total Points: '</span>, <span class="kw">sum</span>(df[<span class="kw">which</span>(x$solution==<span class="dv">1</span>), <span class="st">'total_points'</span>])))</code></pre></div>
-<pre><code>## [1] &quot;Total Points: 2465&quot;</code></pre>
+<h3 id="the-team">The team!</h3>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">df_out &lt;-<span class="st"> </span>df[<span class="kw">which</span>(x$solution==<span class="dv">1</span>), <span class="kw">c</span>(<span class="st">&quot;first_name&quot;</span>, <span class="st">&quot;second_name&quot;</span>, <span class="st">&quot;now_cost&quot;</span>, <span class="st">&quot;team.y&quot;</span>, <span class="st">&quot;element_type&quot;</span>)]
+
+knitr::<span class="kw">kable</span>(df_out[<span class="kw">order</span>(df_out$element_type),])</code></pre></div>
+<table>
+<thead>
+<tr class="header">
+<th align="left">first_name</th>
+<th align="left">second_name</th>
+<th align="right">now_cost</th>
+<th align="left">team.y</th>
+<th align="left">element_type</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="left">Héctor</td>
+<td align="left">Bellerín</td>
+<td align="right">65</td>
+<td align="left">Arsenal</td>
+<td align="left">DEF</td>
+</tr>
+<tr class="even">
+<td align="left">Toby</td>
+<td align="left">Alderweireld</td>
+<td align="right">65</td>
+<td align="left">Tottenham</td>
+<td align="left">DEF</td>
+</tr>
+<tr class="odd">
+<td align="left">Robert</td>
+<td align="left">Huth</td>
+<td align="right">50</td>
+<td align="left">Leicester</td>
+<td align="left">DEF</td>
+</tr>
+<tr class="even">
+<td align="left">Wes</td>
+<td align="left">Morgan</td>
+<td align="right">50</td>
+<td align="left">Leicester</td>
+<td align="left">DEF</td>
+</tr>
+<tr class="odd">
+<td align="left">Charlie</td>
+<td align="left">Daniels</td>
+<td align="right">50</td>
+<td align="left">Bournemouth</td>
+<td align="left">DEF</td>
+</tr>
+<tr class="even">
+<td align="left">Romelu</td>
+<td align="left">Lukaku</td>
+<td align="right">90</td>
+<td align="left">Everton</td>
+<td align="left">FWD</td>
+</tr>
+<tr class="odd">
+<td align="left">Odion</td>
+<td align="left">Ighalo</td>
+<td align="right">75</td>
+<td align="left">Watford</td>
+<td align="left">FWD</td>
+</tr>
+<tr class="even">
+<td align="left">Troy</td>
+<td align="left">Deeney</td>
+<td align="right">70</td>
+<td align="left">Watford</td>
+<td align="left">FWD</td>
+</tr>
+<tr class="odd">
+<td align="left">Petr</td>
+<td align="left">Cech</td>
+<td align="right">55</td>
+<td align="left">Arsenal</td>
+<td align="left">GK</td>
+</tr>
+<tr class="even">
+<td align="left">Heurelho</td>
+<td align="left">Gomes</td>
+<td align="right">50</td>
+<td align="left">Watford</td>
+<td align="left">GK</td>
+</tr>
+<tr class="odd">
+<td align="left">Eric</td>
+<td align="left">Dier</td>
+<td align="right">55</td>
+<td align="left">Tottenham</td>
+<td align="left">MID</td>
+</tr>
+<tr class="even">
+<td align="left">Riyad</td>
+<td align="left">Mahrez</td>
+<td align="right">95</td>
+<td align="left">Leicester</td>
+<td align="left">MID</td>
+</tr>
+<tr class="odd">
+<td align="left">Georginio</td>
+<td align="left">Wijnaldum</td>
+<td align="right">80</td>
+<td align="left">Liverpool</td>
+<td align="left">MID</td>
+</tr>
+<tr class="even">
+<td align="left">André</td>
+<td align="left">Ayew</td>
+<td align="right">75</td>
+<td align="left">West Ham</td>
+<td align="left">MID</td>
+</tr>
+<tr class="odd">
+<td align="left">Marko</td>
+<td align="left">Arnautovic</td>
+<td align="right">75</td>
+<td align="left">Stoke</td>
+<td align="left">MID</td>
+</tr>
+</tbody>
+</table>
 
 </body>
 </html>
