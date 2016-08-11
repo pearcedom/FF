@@ -71,18 +71,7 @@ max_cost &lt;-<span class="st"> </span><span class="dv">1000</span></code></pre>
 <h3 id="lastly-for-the-constraints-we-specify-their-directions-and-define-the-righthand-side-values">Lastly for the constraints, we specify their directions and define the righthand-side values</h3>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">const_dir &lt;-<span class="st"> </span><span class="kw">c</span>(<span class="st">&quot;=&quot;</span>, <span class="st">&quot;=&quot;</span>, <span class="st">&quot;=&quot;</span>, <span class="st">&quot;=&quot;</span>,<span class="st">&quot;&lt;=&quot;</span>, <span class="kw">rep</span>(<span class="st">&quot;&lt;=&quot;</span>, <span class="dv">21</span>))
 const_rhs &lt;-<span class="st"> </span><span class="kw">c</span>(num_gk, num_def, num_mid, num_fwd, <span class="dv">2</span>, max_cost, <span class="kw">rep</span>(<span class="dv">3</span>, <span class="dv">20</span>))
-<span class="co">#i.e. =2GK, =5DEF, =5MID, =3ATK, =£100m, &lt;=2 injured players, &lt;=three players from a single team</span>
-
-<span class="kw">rbind</span>(const_dir, const_rhs)</code></pre></div>
-<pre><code>##           [,1] [,2] [,3] [,4] [,5] [,6]   [,7] [,8] [,9] [,10] [,11] [,12]
-## const_dir &quot;=&quot;  &quot;=&quot;  &quot;=&quot;  &quot;=&quot;  &quot;&lt;=&quot; &quot;&lt;=&quot;   &quot;&lt;=&quot; &quot;&lt;=&quot; &quot;&lt;=&quot; &quot;&lt;=&quot;  &quot;&lt;=&quot;  &quot;&lt;=&quot; 
-## const_rhs &quot;2&quot;  &quot;5&quot;  &quot;5&quot;  &quot;3&quot;  &quot;2&quot;  &quot;1000&quot; &quot;3&quot;  &quot;3&quot;  &quot;3&quot;  &quot;3&quot;   &quot;3&quot;   &quot;3&quot;  
-##           [,13] [,14] [,15] [,16] [,17] [,18] [,19] [,20] [,21] [,22]
-## const_dir &quot;&lt;=&quot;  &quot;&lt;=&quot;  &quot;&lt;=&quot;  &quot;&lt;=&quot;  &quot;&lt;=&quot;  &quot;&lt;=&quot;  &quot;&lt;=&quot;  &quot;&lt;=&quot;  &quot;&lt;=&quot;  &quot;&lt;=&quot; 
-## const_rhs &quot;3&quot;   &quot;3&quot;   &quot;3&quot;   &quot;3&quot;   &quot;3&quot;   &quot;3&quot;   &quot;3&quot;   &quot;3&quot;   &quot;3&quot;   &quot;3&quot;  
-##           [,23] [,24] [,25] [,26]
-## const_dir &quot;&lt;=&quot;  &quot;&lt;=&quot;  &quot;&lt;=&quot;  &quot;&lt;=&quot; 
-## const_rhs &quot;3&quot;   &quot;3&quot;   &quot;3&quot;   &quot;3&quot;</code></pre>
+<span class="co">#i.e. =2GK, =5DEF, =5MID, =3ATK, =£100m, &lt;=2 injured players, &lt;=three players from a single team</span></code></pre></div>
 <h3 id="and-solve">And solve</h3>
 <p>Here we feed the function - &quot;max&quot;: specifying that we want as much as possible - &quot;objective&quot;: based on total score - &quot;const_mat&quot;: our constraint vectors all housed together - &quot;const_dir&quot;: the direction of our constraints (i.e. whether it's less than/equal to) - &quot;const_rhs&quot;: the righthand-side values (i.e. the value that it must be less than/equal to) - &quot;all.bin&quot;: specifies that all variables are binary - &quot;all.int&quot;: specifies that all variables are integers</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">x &lt;-<span class="st"> </span><span class="kw">lp</span>(<span class="st">&quot;max&quot;</span>, objective, const_mat, const_dir, const_rhs, <span class="dt">all.bin=</span><span class="ot">TRUE</span>, <span class="dt">all.int=</span><span class="ot">TRUE</span>)</code></pre></div>

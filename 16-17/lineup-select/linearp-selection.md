@@ -81,19 +81,7 @@ const_mat <- rbind(df$Goalkeeper, df$Defender, df$Midfielder, df$Forward, df$lik
 const_dir <- c("=", "=", "=", "=","<=", rep("<=", 21))
 const_rhs <- c(num_gk, num_def, num_mid, num_fwd, 2, max_cost, rep(3, 20))
 #i.e. =2GK, =5DEF, =5MID, =3ATK, =£100m, <=2 injured players, <=three players from a single team
-
-rbind(const_dir, const_rhs)
 ```
-
-    ##           [,1] [,2] [,3] [,4] [,5] [,6]   [,7] [,8] [,9] [,10] [,11] [,12]
-    ## const_dir "="  "="  "="  "="  "<=" "<="   "<=" "<=" "<=" "<="  "<="  "<=" 
-    ## const_rhs "2"  "5"  "5"  "3"  "2"  "1000" "3"  "3"  "3"  "3"   "3"   "3"  
-    ##           [,13] [,14] [,15] [,16] [,17] [,18] [,19] [,20] [,21] [,22]
-    ## const_dir "<="  "<="  "<="  "<="  "<="  "<="  "<="  "<="  "<="  "<=" 
-    ## const_rhs "3"   "3"   "3"   "3"   "3"   "3"   "3"   "3"   "3"   "3"  
-    ##           [,23] [,24] [,25] [,26]
-    ## const_dir "<="  "<="  "<="  "<=" 
-    ## const_rhs "3"   "3"   "3"   "3"
 
 ### And solve
 
