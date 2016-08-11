@@ -38,14 +38,15 @@ Plot as percentage selected by position
 ---------------------------------------
 
 ``` r
-ggplot(ff.dfr, aes(x = second_name, y = as.numeric(selected_by_percent), colour = team.y)) + 
-  geom_point() + 
-  facet_wrap(~element_type, ncol = 2, scales = 'free_x') +
+ggplot(ff.dfr[ff.dfr$selected_by_percent > 1,], aes(x = second_name, y = as.numeric(selected_by_percent), fill = team.y, colour = team.y)) +
+  geom_bar(stat = 'identity', width = 0.03) + 
+  geom_point(size = 3) + 
+  facet_wrap(~element_type, ncol = 1, scales = 'free_x') +
   theme_pander() +
   theme(legend.position = 'bottom', 
         axis.text.x = element_text(angle = 90),
         axis.title.x = element_blank()) +
-  guides(colour = guide_legend(title = "Team")) +
+  guides(fill = guide_legend(title = "Team"), colour = 'none') +
   ylab("Percentage Selected By")
 ```
 
