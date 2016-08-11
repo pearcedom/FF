@@ -3,15 +3,7 @@ Auto-team Selection, Pre-season
 Dominic Pearce
 
 ``` r
-knitr::opts_chunk$set(echo = TRUE, message = FALSE, warning = FALSE)
-```
-
-``` r
 library(lpSolve)
-library(stringr)
-library(RCurl)
-library(jsonlite)
-library(plyr)
 library(readr)
 library(purrr)
 library(tibble)
@@ -19,7 +11,7 @@ library(tibble)
 
 ### Using linear programming we set a number of constraints and a variable to optimise our selection on and the computer choses the best possible team based off of last seasons points tallies
 
-Credit to \_\_\_ for the script on how to do this!
+Credit to Martin Eastwood at [Pena.lt/y](Pena.lt/y) for the intial script on how to do this!
 
 ### Data load
 

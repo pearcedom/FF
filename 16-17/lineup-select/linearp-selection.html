@@ -27,17 +27,12 @@ body {
 
 <h1 id="auto-team-selection-pre-season">Auto-team Selection, Pre-season</h1>
 <p>Dominic Pearce</p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">knitr::opts_chunk$<span class="kw">set</span>(<span class="dt">echo =</span> <span class="ot">TRUE</span>, <span class="dt">message =</span> <span class="ot">FALSE</span>, <span class="dt">warning =</span> <span class="ot">FALSE</span>)</code></pre></div>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">library</span>(lpSolve)
-<span class="kw">library</span>(stringr)
-<span class="kw">library</span>(RCurl)
-<span class="kw">library</span>(jsonlite)
-<span class="kw">library</span>(plyr)
 <span class="kw">library</span>(readr)
 <span class="kw">library</span>(purrr)
 <span class="kw">library</span>(tibble)</code></pre></div>
 <h3 id="using-linear-programming-we-set-a-number-of-constraints-and-a-variable-to-optimise-our-selection-on-and-the-computer-choses-the-best-possible-team-based-off-of-last-seasons-points-tallies">Using linear programming we set a number of constraints and a variable to optimise our selection on and the computer choses the best possible team based off of last seasons points tallies</h3>
-<p>Credit to ___ for the script on how to do this!</p>
+<p>Credit to Martin Eastwood at <a href="Pena.lt/y" class="uri">Pena.lt/y</a> for the intial script on how to do this!</p>
 <h3 id="data-load">Data load</h3>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">df &lt;-<span class="st"> </span><span class="kw">read_tsv</span>(<span class="st">&quot;/Users/dom/Documents/FF/16-17/scrapes/16-08-11-scrape.txt&quot;</span>)</code></pre></div>
 <h3 id="optimisation-variable">Optimisation variable</h3>
