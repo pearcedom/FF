@@ -39,7 +39,7 @@ ff.dfr <- ff.dfr_teams[c("id", "team.y", "status", "first_name", "second_name", 
 
 ## Plot as percentage selected by position
 
-```{r, fig.height = 13, fig.width = 9.5}
+```{r, fig.height = 16, fig.width = 16}
 ggplot(ff.dfr, aes(x = second_name, y = as.numeric(selected_by_percent), colour = team.y)) + 
   geom_point() + 
   facet_wrap(~element_type, ncol = 2, scales = 'free_x') +
