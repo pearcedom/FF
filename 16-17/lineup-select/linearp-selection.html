@@ -34,7 +34,7 @@ body {
 <h3 id="using-linear-programming-we-set-a-number-of-constraints-and-a-variable-to-optimise-our-selection-on-and-the-computer-choses-the-best-possible-team-based-off-of-last-seasons-points-tallies">Using linear programming we set a number of constraints and a variable to optimise our selection on and the computer choses the best possible team based off of last seasons points tallies</h3>
 <p>Credit to Martin Eastwood at <a href="Pena.lt/y" class="uri">Pena.lt/y</a> for the intial script on how to do this!</p>
 <h3 id="data-load">Data load</h3>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">df &lt;-<span class="st"> </span><span class="kw">read_tsv</span>(<span class="st">&quot;/Users/dom/Documents/FF/16-17/scrapes/16-08-11-scrape.txt&quot;</span>)</code></pre></div>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">df &lt;-<span class="st"> </span><span class="kw">read.delim</span>(<span class="st">&quot;https://raw.githubusercontent.com/pearcedom/FF/master/16-17/scrapes/16-08-11-scrape.txt&quot;</span>) %&gt;%<span class="st"> </span>as_tibble</code></pre></div>
 <h3 id="optimisation-variable">Optimisation variable</h3>
 <p>Total points are what we really care about here, anything else (goals, assists, etc.) is secondary</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">objective &lt;-<span class="st"> </span>df$total_points</code></pre></div>
@@ -335,7 +335,8 @@ knitr::<span class="kw">kable</span>(team_df_out[<span class="kw">order</span>(t
 <h3 id="captain-selection">Captain Selection</h3>
 <p>For the first week this will just be based on highest total score last year - <strong>Mahrez</strong> (<em>Lukaku VC</em>)</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">team_df_out$second_name[<span class="kw">order</span>(team_df_out$total_points, <span class="dt">decreasing =</span> <span class="ot">TRUE</span>)][<span class="dv">1</span>:<span class="dv">2</span>]</code></pre></div>
-<pre><code>## [1] &quot;Mahrez&quot; &quot;Lukaku&quot;</code></pre>
+<pre><code>## [1] Mahrez Lukaku
+## 484 Levels: Abdi Adam Adomah Afellay Afobe Agudo Durán Agüero Aina ... Zuñiga</code></pre>
 
 </body>
 </html>

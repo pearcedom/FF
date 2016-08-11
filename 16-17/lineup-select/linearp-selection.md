@@ -16,7 +16,7 @@ Credit to Martin Eastwood at [Pena.lt/y](Pena.lt/y) for the intial script on how
 ### Data load
 
 ``` r
-df <- read_tsv("/Users/dom/Documents/FF/16-17/scrapes/16-08-11-scrape.txt")
+df <- read.delim("https://raw.githubusercontent.com/pearcedom/FF/master/16-17/scrapes/16-08-11-scrape.txt") %>% as_tibble
 ```
 
 ### Optimisation variable
@@ -156,4 +156,5 @@ For the first week this will just be based on highest total score last year - **
 team_df_out$second_name[order(team_df_out$total_points, decreasing = TRUE)][1:2]
 ```
 
-    ## [1] "Mahrez" "Lukaku"
+    ## [1] Mahrez Lukaku
+    ## 484 Levels: Abdi Adam Adomah Afellay Afobe Agudo Durán Agüero Aina ... Zuñiga
