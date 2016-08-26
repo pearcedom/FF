@@ -15,6 +15,8 @@ library(purrr)
 library(tibble)
 ```
 
+# GW1 Selection
+
 ### Using linear programming we set a number of constraints and a variable to optimise our selection on and the computer choses the best possible team based off of last seasons points tallies
 
 Credit to Martin Eastwood at [Pena.lt/y](Pena.lt/y) for the intial script on how to do this!
@@ -107,20 +109,94 @@ knitr::kable(df_out[order(df_out$element_type),])
 ```{r}
 team_df <- df[which(x$solution==1),]
 
-objective <- team_df$total_points
+team_objective <- team_df$total_points
 
-team_constraint <- sapply(unique(team_df$team.y), function(x) ifelse(team_df$team.y == x, 1, 0), USE.NAMES = TRUE) %>% as_tibble %>% t
+team_team_constraint <- sapply(unique(team_df$team.y), function(x) ifelse(team_df$team.y == x, 1, 0), USE.NAMES = TRUE) %>% as_tibble %>% t
 
-const_mat <- rbind(team_df$Goalkeeper, team_df$Defender, team_df$Defender, team_df$Midfielder, team_df$Midfielder, team_df$Forward, team_df$Forward, team_df$likelihood, team_constraint, 1)
+team_const_mat <- rbind(team_df$Goalkeeper, team_df$Defender, team_df$Defender, team_df$Midfielder, team_df$Midfielder, team_df$Forward, team_df$Forward, team_df$likelihood, team_team_constraint, 1)
 
-const_dir <- c("=", "<=",  ">=", "<=", ">=", "<=", ">=", "=", rep("<=", length(unique(team_df$team.y))), "=")
-const_rhs <- c( 1, 5, 3, 5, 2, 3, 1, 0, rep(3, length(unique(team_df$team.y))), 11)
+team_const_dir <- c("=", "<=",  ">=", "<=", ">=", "<=", ">=", "=", rep("<=", length(unique(team_df$team.y))), "=")
+team_const_rhs <- c( 1, 5, 3, 5, 2, 3, 1, 0, rep(3, length(unique(team_df$team.y))), 11)
 
-team_x <- lp("max", objective, const_mat, const_dir, const_rhs, all.bin=TRUE, all.int=TRUE)
+team_x <- lp("max", team_objective, team_const_mat, team_const_dir, team_const_rhs, all.bin=TRUE, all.int=TRUE)
 
 team_df_out <- team_df[which(team_x$solution==1), c("first_name", "second_name", "now_cost", "team.y", "element_type", "total_points")]
 
 knitr::kable(team_df_out[order(team_df_out$element_type),])
+```
+
+### Captain Selection
+For the first week this will just be based on highest total score last year - **Mahrez** (*Lukaku VC*)
+```{r}
+team_df_out$second_name[order(team_df_out$total_points, decreasing = TRUE)][1:2]
+```
+
+# Post-GW1 Selections
+
+Having completed our original squad each week we can make a substitution, to remove an injured/under performing player. For GW2-4ish we'll continue to use last seasons data, until this seasons information becomes a bit more robust.
+
+To actually achieve this, we can simply add another constraint, that our team must contain >10 of the previous weeks players. This will mean that for the first couple of weeks only injuries are likely to force a line-up change.
+
+```{r}
+df_gw2 <- read.delim("https://raw.githubusercontent.com/pearcedom/FF/master/16-17/scrapes/16-08-18-scrape.txt") %>% as_tibble
+
+sub_objective <- df_gw2$total_points
+
+#binary vectors specifying which rows (i.e. which players) belong to a given position
+df_gw2$Goalkeeper <- ifelse(df_gw2$element_type == "GK", 1, 0)
+df_gw2$Defender <- ifelse(df_gw2$element_type == "DEF", 1, 0)
+df_gw2$Midfielder <- ifelse(df_gw2$element_type == "MID", 1, 0)
+df_gw2$Forward <- ifelse(df_gw2$element_type == "FWD", 1, 0)
+
+likelihood <- df_gw2$chance_of_playing_next_round
+df_gw2$likelihood <- ifelse(is.na(likelihood), 0, ifelse(likelihood >= 75, 0, 1))
+
+sub_team_constraint <- sapply(unique(df_gw2$team.y), function(x) ifelse(df_gw2$team.y == x, 1, 0), USE.NAMES = TRUE) %>% as_tibble %>% t
+
+gw1_picks <- rep(0, nrow(df_gw2))
+gw1_picks[map_int(as.character(team_df$web_name), function(x) which(df_gw2$web_name == x))] <- 1
+
+df_gw2$squad <- gw1_picks
+
+
+sub_const_mat <- rbind(df_gw2$Goalkeeper, df_gw2$Defender, df_gw2$Midfielder, df_gw2$Forward, df_gw2$likelihood, df_gw2$now_cost, sub_team_constraint, df_gw2$squad)
+sub_const_dir <- c("=", "=", "=", "=","<=", rep("<=", 21), "=")
+sub_const_rhs <- c(num_gk, num_def, num_mid, num_fwd, 2, max_cost, rep(3, 20), 14)
+
+#DT::datatable(rbind(sub_const_dir, sub_const_rhs))
+
+sub_x <- lp("max", sub_objective, sub_const_mat, sub_const_dir, sub_const_rhs, all.bin=TRUE, all.int=TRUE)
+
+sub_out <- df_gw2[which(sub_x$solution==1), c("first_name", "second_name", "now_cost", "team.y", "element_type", "total_points")]
+
+knitr::kable(sub_out[order(sub_out$element_type),])
+```
+
+### Check who's been removed
+
+```{r}
+sapply(as.character(team_df$second_name), function(x) which(x == as.character(sub_out$second_name)))
+```
+
+### And we need to select our starting 11 once again
+
+```{r}
+team_df_gw2 <- df_gw2[which(sub_x$solution==1),]
+
+team_objective_gw2 <- team_df_gw2$total_points
+
+team_team_constraint_gw2 <- sapply(unique(team_df_gw2$team.y), function(x) ifelse(team_df_gw2$team.y == x, 1, 0), USE.NAMES = TRUE) %>% as_tibble %>% t
+
+team_const_mat_gw2 <- rbind(team_df_gw2$Goalkeeper, team_df_gw2$Defender, team_df_gw2$Defender, team_df_gw2$Midfielder, team_df_gw2$Midfielder, team_df_gw2$Forward, team_df_gw2$Forward, team_df_gw2$likelihood, team_team_constraint_gw2, 1)
+
+team_const_dir_gw2 <- c("=", "<=",  ">=", "<=", ">=", "<=", ">=", "=", rep("<=", length(unique(team_df_gw2$team.y))), "=")
+team_const_rhs_gw2 <- c( 1, 5, 3, 5, 2, 3, 1, 0, rep(3, length(unique(team_df_gw2$team.y))), 11)
+
+team_x_gw2 <- lp("max", team_objective_gw2, team_const_mat_gw2, team_const_dir_gw2, team_const_rhs_gw2, all.bin=TRUE, all.int=TRUE)
+
+team_df_out_gw2 <- team_df_gw2[which(team_x_gw2$solution==1), c("first_name", "second_name", "now_cost", "team.y", "element_type", "total_points")]
+
+knitr::kable(team_df_out_gw2[order(team_df_out_gw2$element_type),])
 ```
 
 ### Captain Selection
