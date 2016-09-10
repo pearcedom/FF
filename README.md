@@ -1,3 +1,5 @@
+###NOTE: GW4 scrape on laptop only atm
+
 # FF
 ### Fantasy Football related coding in R
  - Team selection
