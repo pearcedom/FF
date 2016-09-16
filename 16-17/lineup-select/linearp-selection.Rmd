@@ -275,32 +275,29 @@ knitr::kable(team_df_out_gw3[order(team_df_out_gw3$element_type),])
 ### **MUST ACTUALLY FIX THIS PROPERLY**
 # GW4
 ```{r}
-df_gw3 <- read.delim("https://raw.githubusercontent.com/pearcedom/FF/master/16-17/scrapes/16-08-26-scrape.txt") %>% as_tibble
+df_gw4 <- read.delim("~/Documents/FF/16-17/scrapes/16-09-10.txt") %>% as_tibble
 
-sub_objective <- df_gw3$total_points
+sub_objective <- df_gw4$total_points
 
 #binary vectors specifying which rows (i.e. which players) belong to a given position
-df_gw3$Goalkeeper <- ifelse(df_gw3$element_type == "GK", 1, 0)
-df_gw3$Defender <- ifelse(df_gw3$element_type == "DEF", 1, 0)
-df_gw3$Midfielder <- ifelse(df_gw3$element_type == "MID", 1, 0)
-df_gw3$Forward <- ifelse(df_gw3$element_type == "FWD", 1, 0)
+df_gw4$Goalkeeper <- ifelse(df_gw4$element_type == "GK", 1, 0)
+df_gw4$Defender <- ifelse(df_gw4$element_type == "DEF", 1, 0)
+df_gw4$Midfielder <- ifelse(df_gw4$element_type == "MID", 1, 0)
+df_gw4$Forward <- ifelse(df_gw4$element_type == "FWD", 1, 0)
 
-likelihood <- df_gw3$chance_of_playing_next_round
-df_gw3$likelihood <- ifelse(is.na(likelihood), 0, ifelse(likelihood >= 75, 0, 1))
+likelihood <- df_gw4$chance_of_playing_next_round
+df_gw4$likelihood <- ifelse(is.na(likelihood), 0, ifelse(likelihood >= 75, 0, 1))
 
-sub_team_constraint <- sapply(unique(df_gw3$team.y), function(x) ifelse(df_gw3$team.y == x, 1, 0), USE.NAMES = TRUE) %>% as_tibble %>% t
+sub_team_constraint <- sapply(unique(df_gw4$team.y), function(x) ifelse(df_gw4$team.y == x, 1, 0), USE.NAMES = TRUE) %>% as_tibble %>% t
 
-gw2_picks <- rep(0, nrow(df_gw3))
-#whoops, accidentally subbed wrong player last week!
-gw2_wrong <- as.character(team_df_gw2$web_name)
-gw2_correct <- map_chr(gw2_wrong, function(x) ifelse(x == "Ayew", "Arnautovic", x))
-gw2_picks[map_int(gw2_correct, function(x) which(df_gw3$web_name == x))] <- 1
+gw3_picks <- rep(0, nrow(df_gw4))
+gw3_picks[map_int(as.character(sub_out$second_name), function(x) which(df_gw4$web_name == x))] <- 1
 
-df_gw3$squad <- gw2_picks
-df_gw3[df_gw3$squad == 1,c("first_name", "second_name", "now_cost", "team.y", "element_type", "total_points")]
+df_gw4$squad <- gw3_picks
+df_gw4[df_gw4$squad == 1,c("first_name", "second_name", "now_cost", "team.y", "element_type", "total_points")]
 
 
-sub_const_mat <- rbind(df_gw3$Goalkeeper, df_gw3$Defender, df_gw3$Midfielder, df_gw3$Forward, df_gw3$likelihood, df_gw3$now_cost, sub_team_constraint, df_gw3$squad)
+sub_const_mat <- rbind(df_gw4$Goalkeeper, df_gw4$Defender, df_gw4$Midfielder, df_gw4$Forward, df_gw4$likelihood, df_gw4$now_cost, sub_team_constraint, df_gw4$squad)
 sub_const_dir <- c("=", "=", "=", "=","<=", rep("<=", 21), "=")
 sub_const_rhs <- c(num_gk, num_def, num_mid, num_fwd, 2, max_cost, rep(3, 20), 14)
 
@@ -308,7 +305,7 @@ sub_const_rhs <- c(num_gk, num_def, num_mid, num_fwd, 2, max_cost, rep(3, 20), 1
 
 sub_x <- lp("max", sub_objective, sub_const_mat, sub_const_dir, sub_const_rhs, all.bin=TRUE, all.int=TRUE)
 
-sub_out <- df_gw3[which(sub_x$solution==1), c("first_name", "second_name", "now_cost", "team.y", "element_type", "total_points")]
+sub_out <- df_gw4[which(sub_x$solution==1), c("first_name", "second_name", "now_cost", "team.y", "element_type", "total_points")]
 
 knitr::kable(sub_out[order(sub_out$element_type),])
 ```
@@ -322,20 +319,20 @@ sapply(as.character(team_df$second_name), function(x) which(x == as.character(su
 ### And we need to select our starting 11 once again
 
 ```{r}
-team_df_gw3 <- df_gw3[which(sub_x$solution==1),]
+team_df_gw4 <- df_gw4[which(sub_x$solution==1),]
 
-team_objective_gw3 <- team_df_gw3$total_points
+team_objective_gw4 <- team_df_gw4$total_points
 
-team_team_constraint_gw3 <- sapply(unique(team_df_gw3$team.y), function(x) ifelse(team_df_gw3$team.y == x, 1, 0), USE.NAMES = TRUE) %>% as_tibble %>% t
+team_team_constraint_gw4 <- sapply(unique(team_df_gw4$team.y), function(x) ifelse(team_df_gw4$team.y == x, 1, 0), USE.NAMES = TRUE) %>% as_tibble %>% t
 
-team_const_mat_gw3 <- rbind(team_df_gw3$Goalkeeper, team_df_gw3$Defender, team_df_gw3$Defender, team_df_gw3$Midfielder, team_df_gw3$Midfielder, team_df_gw3$Forward, team_df_gw3$Forward, team_df_gw3$likelihood, team_team_constraint_gw3, 1)
+team_const_mat_gw4 <- rbind(team_df_gw4$Goalkeeper, team_df_gw4$Defender, team_df_gw4$Defender, team_df_gw4$Midfielder, team_df_gw4$Midfielder, team_df_gw4$Forward, team_df_gw4$Forward, team_df_gw4$likelihood, team_team_constraint_gw4, 1)
 
-team_const_dir_gw3 <- c("=", "<=",  ">=", "<=", ">=", "<=", ">=", "=", rep("<=", length(unique(team_df_gw3$team.y))), "=")
-team_const_rhs_gw3 <- c( 1, 5, 3, 5, 2, 3, 1, 0, rep(3, length(unique(team_df_gw3$team.y))), 11)
+team_const_dir_gw4 <- c("=", "<=",  ">=", "<=", ">=", "<=", ">=", "=", rep("<=", length(unique(team_df_gw4$team.y))), "=")
+team_const_rhs_gw4 <- c( 1, 5, 3, 5, 2, 3, 1, 0, rep(3, length(unique(team_df_gw4$team.y))), 11)
 
-team_x_gw3 <- lp("max", team_objective_gw3, team_const_mat_gw3, team_const_dir_gw3, team_const_rhs_gw3, all.bin=TRUE, all.int=TRUE)
+team_x_gw4 <- lp("max", team_objective_gw4, team_const_mat_gw4, team_const_dir_gw4, team_const_rhs_gw4, all.bin=TRUE, all.int=TRUE)
 
-team_df_out_gw3 <- team_df_gw3[which(team_x_gw3$solution==1), c("first_name", "second_name", "now_cost", "team.y", "element_type", "total_points")]
+team_df_out_gw4 <- team_df_gw4[which(team_x_gw4$solution==1), c("first_name", "second_name", "now_cost", "team.y", "element_type", "total_points")]
 
-knitr::kable(team_df_out_gw3[order(team_df_out_gw3$element_type),])
+knitr::kable(team_df_out_gw4[order(team_df_out_gw4$element_type),])
 ```
