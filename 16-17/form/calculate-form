@@ -1,0 +1,23 @@
+library(jsonlite)
+library(tidyverse)
+input <- fromJSON("~/Desktop/fball.json")
+
+gw_dfr <- input$rounds$matches
+
+form_dfr <- matrix(ncol = 39, nrow = 20) %>% as_tibble
+colnames(form_dfr) <- c("team", map_chr(1:38, function(x) paste0("GW", x)))
+form_dfr$team <- c(gw_dfr[[1]]$team1$code, gw_dfr[[1]]$team2$code) %>% sort
+
+
+form_dfr <- lapply(1:38, function(x) {
+    dfr <- gw_dfr[[x]]
+    rbind(
+        tibble(team = dfr$team1$code, res = ifelse(dfr$score1 < dfr$score2, 0, ifelse(dfr$score1 > dfr$score2, 3, 1))), tibble(team = dfr$team2$code, res = ifelse(dfr$score1 > dfr$score2, 0, ifelse(dfr$score1 < dfr$score2, 3, 1)))) %>% .[order(.$team), "res"]
+}) %>% do.call(cbind, .)
+
+colnames(form_dfr) <- map_chr(1:38, function(x) paste0("GW", x))
+form_dfr$team <- c(gw_dfr[[1]]$team1$code, gw_dfr[[1]]$team2$code) %>% sort
+
+current_gw <- sum(!is.na(form_dfr[1, 1:38]))
+
+form_dfr$form <- map_dbl(1:nrow(form_dfr), function(x) sum(form_dfr[x, 1:current_gw], na.rm = TRUE))
