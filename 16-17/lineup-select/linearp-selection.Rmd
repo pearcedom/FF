@@ -450,3 +450,70 @@ For the first week this will just be based on highest total score last year - **
 team_df_out$second_name[order(team_df_out$total_points, decreasing = TRUE)][1:2]
 ````
 
+
+```{r}
+df_gw6 <- read.delim("https://raw.githubusercontent.com/pearcedom/FF/master/16-17/scrapes/16-09-21.txt") %>% as_tibble
+
+sub_objective <- df_gw6$total_points
+
+#binary vectors specifying which rows (i.e. which players) belong to a given position
+df_gw6$Goalkeeper <- ifelse(df_gw6$element_type == "GK", 1, 0)
+df_gw6$Defender <- ifelse(df_gw6$element_type == "DEF", 1, 0)
+df_gw6$Midfielder <- ifelse(df_gw6$element_type == "MID", 1, 0)
+df_gw6$Forward <- ifelse(df_gw6$element_type == "FWD", 1, 0)
+
+likelihood <- df_gw6$chance_of_playing_next_round
+df_gw6$likelihood <- ifelse(is.na(likelihood), 0, ifelse(likelihood >= 75, 0, 1))
+
+sub_team_constraint <- sapply(unique(df_gw6$team.y), function(x) ifelse(df_gw6$team.y == x, 1, 0), USE.NAMES = TRUE) %>% as_tibble %>% t
+
+gw1_picks <- rep(0, nrow(df_gw6))
+gw1_picks[map_int(as.character(team_df$code), function(x) which(df_gw6$code == x))] <- 1
+
+df_gw6$squad <- gw1_picks
+
+sub_const_mat <- rbind(df_gw6$Goalkeeper, df_gw6$Defender, df_gw6$Midfielder, df_gw6$Forward, df_gw6$likelihood, df_gw6$now_cost, sub_team_constraint, df_gw6$squad)
+sub_const_dir <- c("=", "=", "=", "=","<=", rep("<=", 21), "=")
+sub_const_rhs <- c(num_gk, num_def, num_mid, num_fwd, 2, max_cost, rep(3, 20), 14)
+
+#DT::datatable(rbind(sub_const_dir, sub_const_rhs))
+
+sub_x <- lp("max", sub_objective, sub_const_mat, sub_const_dir, sub_const_rhs, all.bin=TRUE, all.int=TRUE)
+
+sub_out <- df_gw6[which(sub_x$solution==1), c("first_name", "second_name", "now_cost", "team.y", "element_type", "total_points")]
+
+knitr::kable(sub_out[order(sub_out$element_type),])
+```
+
+### Check who's been removed
+
+```{r}
+sapply(as.character(team_df$second_name), function(x) which(x == as.character(sub_out$second_name)))
+```
+
+### And we need to select our starting 11 once again
+
+```{r}
+team_df_gw6 <- df_gw6[which(sub_x$solution==1),]
+
+team_objective_gw6 <- team_df_gw6$total_points
+
+team_team_constraint_gw6 <- sapply(unique(team_df_gw6$team.y), function(x) ifelse(team_df_gw6$team.y == x, 1, 0), USE.NAMES = TRUE) %>% as_tibble %>% t
+
+team_const_mat_gw6 <- rbind(team_df_gw6$Goalkeeper, team_df_gw6$Defender, team_df_gw6$Defender, team_df_gw6$Midfielder, team_df_gw6$Midfielder, team_df_gw6$Forward, team_df_gw6$Forward, team_df_gw6$likelihood, team_team_constraint_gw6, 1)
+
+team_const_dir_gw6 <- c("=", "<=",  ">=", "<=", ">=", "<=", ">=", "=", rep("<=", length(unique(team_df_gw6$team.y))), "=")
+team_const_rhs_gw6 <- c( 1, 5, 3, 5, 2, 3, 1, 0, rep(3, length(unique(team_df_gw6$team.y))), 11)
+
+team_x_gw6 <- lp("max", team_objective_gw6, team_const_mat_gw6, team_const_dir_gw6, team_const_rhs_gw6, all.bin=TRUE, all.int=TRUE)
+
+team_df_out_gw6 <- team_df_gw6[which(team_x_gw6$solution==1), c("first_name", "second_name", "now_cost", "team.y", "element_type", "total_points")]
+
+knitr::kable(team_df_out_gw6[order(team_df_out_gw6$element_type),])
+```
+
+### Captain Selection
+For the first week this will just be based on highest total score last year - **Mahrez** (*Lukaku VC*)
+```{r}
+team_df_out$second_name[order(team_df_out$total_points, decreasing = TRUE)][1:2]
+```
